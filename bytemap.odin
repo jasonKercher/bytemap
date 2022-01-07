@@ -132,6 +132,7 @@ _get_entry :: proc(m: ^Map($T), key: []u8, hash: ^u64) -> ^_Entry {
 	return e
 }
 
+@(private = "file")
 _hash :: proc(dest: ^[dynamic]u8, key: []u8, n: ^u32) -> u64 {
 	hash : u64 = _FNV1_INIT
 	for i : u32 = 0; i < n^; i += 1 {
@@ -141,6 +142,8 @@ _hash :: proc(dest: ^[dynamic]u8, key: []u8, n: ^u32) -> u64 {
 	}
 	return hash
 }
+
+@(private = "file")
 _hash_nocase :: proc(dest: ^[dynamic]u8, key: []u8, n: ^u32) -> u64 {
 	hash : u64 = _FNV1_INIT
 	for i : u32 = 0; i < n^; i += 1 {
@@ -150,44 +153,50 @@ _hash_nocase :: proc(dest: ^[dynamic]u8, key: []u8, n: ^u32) -> u64 {
 	}
 	return hash
 }
+
+@(private = "file")
 _hash_rtrim :: proc(dest: ^[dynamic]u8, key: []u8, n: ^u32) -> u64 {
 	hash : u64 = _FNV1_INIT
 	last_not_space_hash := hash
-	last_not_space_n := n^
+	last_not_space_n : u32
 
 	for i : u32 = 0; i < n^; i += 1 {
 		append(dest, key[i])
 		hash *= _PRIME
 		hash ~= u64(key[i])
-		if bytes.is_ascii_space(rune(key[i])) {
+		if !bytes.is_ascii_space(rune(key[i])) {
 			last_not_space_hash = hash
-			last_not_space_n = n^
+			last_not_space_n = i + 1
 		}
 	}
 
 	if last_not_space_n < n^ {
 		resize(dest, len(dest) - int(n^ - last_not_space_n))
+		hash = last_not_space_hash
 		n^ = last_not_space_n
 	}
 	return hash
 }
+
+@(private = "file")
 _hash_nocase_rtrim :: proc(dest: ^[dynamic]u8, key: []u8, n: ^u32) -> u64 {
 	hash : u64 = _FNV1_INIT
 	last_not_space_hash := hash
-	last_not_space_n := n^
+	last_not_space_n : u32
 
 	for i : u32 = 0; i < n^; i += 1 {
 		append(dest, _to_lower(key[i]))
 		hash *= _PRIME
 		hash ~= u64(dest[len(dest) - 1])
-		if bytes.is_ascii_space(rune(key[i])) {
+		if !bytes.is_ascii_space(rune(key[i])) {
 			last_not_space_hash = hash
-			last_not_space_n = n^
+			last_not_space_n = i + 1
 		}
 	}
 
 	if last_not_space_n < n^ {
 		resize(dest, len(dest) - int(n^ - last_not_space_n))
+		hash = last_not_space_hash
 		n^ = last_not_space_n
 	}
 	return hash
