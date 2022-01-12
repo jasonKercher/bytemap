@@ -426,9 +426,9 @@ _grow_entries :: proc(old_entries: ^[]_Entry) {
 
 @(private = "file")
 _make_new_entries :: proc(n: u64) -> []_Entry {
-	buf := make([dynamic]_Entry, n)
+	buf := make([]_Entry, n)
 	mem.set(mem.raw_data(buf), u8(255), size_of(_Entry) * int(n))
-	return buf[:]
+	return buf
 }
 
 /* What did you expect? It's a "byte" map. */
