@@ -1,11 +1,17 @@
 package bytemap
 
 import "core:testing"
+import "core:fmt"
 
 @test
 test_map_basic :: proc(t: ^testing.T) {
 	m := make_map(int, 16)
 	_map_setup(&m)
+
+	/* Now insert so much crap, we must resize */
+	for i := 0; i < 128; i += 1 {
+		set(&m, fmt.tprintf("Key_Number_%d", i), i)
+	}
 
 	val: int
 	ret: Result
@@ -42,6 +48,11 @@ test_map_nocase :: proc(t: ^testing.T) {
 	m := make_map(int, 16, {.No_Case})
 	_map_setup(&m)
 
+	/* Now insert so much crap, we must resize */
+	for i := 0; i < 128; i += 1 {
+		set(&m, fmt.tprintf("Key_Number_%d", i), i)
+	}
+
 	val: int
 	ret: Result
 	val, ret = get(&m, "one")
@@ -77,6 +88,11 @@ test_map_rtrim :: proc(t: ^testing.T) {
 	m := make_map(int, 16, {.Rtrim})
 	_map_setup(&m)
 
+	/* Now insert so much crap, we must resize */
+	for i := 0; i < 128; i += 1 {
+		set(&m, fmt.tprintf("Key_Number_%d", i), i)
+	}
+
 	val: int
 	ret: Result
 	val, ret = get(&m, "one")
@@ -111,6 +127,11 @@ test_map_rtrim :: proc(t: ^testing.T) {
 test_map_nocase_rtrim :: proc(t: ^testing.T) {
 	m := make_map(int, 16, {.No_Case, .Rtrim})
 	_map_setup(&m)
+
+	/* Now insert so much crap, we must resize */
+	for i := 0; i < 128; i += 1 {
+		set(&m, fmt.tprintf("Key_Number_%d", i), i)
+	}
 
 	val: int
 	ret: Result
@@ -149,6 +170,11 @@ test_multi_basic :: proc(t: ^testing.T) {
 
 	_map_setup(&m)
 	
+	/* Now insert so much crap, we must resize */
+	for i := 0; i < 128; i += 1 {
+		set(&m, fmt.tprintf("Key_Number_%d", i), i)
+	}
+
 	vals: []int
 	ret: Result
 	vals, ret = get(&m, "one")
@@ -200,6 +226,11 @@ test_multi_nocase :: proc(t: ^testing.T) {
 
 	_map_setup(&m)
 	
+	/* Now insert so much crap, we must resize */
+	for i := 0; i < 128; i += 1 {
+		set(&m, fmt.tprintf("Key_Number_%d", i), i)
+	}
+
 	vals: []int
 	ret: Result
 	vals, ret = get(&m, "one")
@@ -252,6 +283,11 @@ test_multi_rtrim :: proc(t: ^testing.T) {
 
 	_map_setup(&m)
 	
+	/* Now insert so much crap, we must resize */
+	for i := 0; i < 128; i += 1 {
+		set(&m, fmt.tprintf("Key_Number_%d", i), i)
+	}
+
 	vals: []int
 	ret: Result
 	vals, ret = get(&m, "one")
@@ -305,6 +341,11 @@ test_multi_nocase_rtrim :: proc(t: ^testing.T) {
 
 	_map_setup(&m)
 	
+	/* Now insert so much crap, we must resize */
+	for i := 0; i < 128; i += 1 {
+		set(&m, fmt.tprintf("Key_Number_%d", i), i)
+	}
+
 	vals: []int
 	ret: Result
 	vals, ret = get(&m, "one")
@@ -359,6 +400,11 @@ test_set_basic :: proc(t: ^testing.T) {
 	s := make_set(16)
 	_set_setup(&s)
 
+	/* Now insert so much crap, we must resize */
+	for i := 0; i < 128; i += 1 {
+		set(&s, fmt.tprintf("Key_Number_%d", i))
+	}
+
 	ret: Result
 	ret = get(&s, "one")
 	testing.expect_value(t, ret, Result.Found)
@@ -382,6 +428,11 @@ test_set_basic :: proc(t: ^testing.T) {
 test_set_nocase :: proc(t: ^testing.T) {
 	s := make_set(16, {.No_Case})
 	_set_setup(&s)
+
+	/* Now insert so much crap, we must resize */
+	for i := 0; i < 128; i += 1 {
+		set(&s, fmt.tprintf("Key_Number_%d", i))
+	}
 
 	ret: Result
 	ret = get(&s, "one")
@@ -407,6 +458,11 @@ test_set_rtrim :: proc(t: ^testing.T) {
 	s := make_set(16, {.Rtrim})
 	_set_setup(&s)
 
+	/* Now insert so much crap, we must resize */
+	for i := 0; i < 128; i += 1 {
+		set(&s, fmt.tprintf("Key_Number_%d", i))
+	}
+
 	ret: Result
 	ret = get(&s, "one")
 	testing.expect_value(t, ret, Result.Found)
@@ -431,6 +487,11 @@ test_set_nocase_rtrim :: proc(t: ^testing.T) {
 	s := make_set(16, {.Rtrim, .No_Case})
 	_set_setup(&s)
 
+	/* Now insert so much crap, we must resize */
+	for i := 0; i < 128; i += 1 {
+		set(&s, fmt.tprintf("Key_Number_%d", i))
+	}
+
 	ret: Result
 	ret = get(&s, "one")
 	testing.expect_value(t, ret, Result.Found)
@@ -449,7 +510,6 @@ test_set_nocase_rtrim :: proc(t: ^testing.T) {
 	ret = get(&s, "no")
 	testing.expect_value(t, ret, Result.Not_Found)
 }
-
 
 @(private = "file")
 _map_setup :: proc(m: $T) {
