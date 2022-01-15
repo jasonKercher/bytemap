@@ -14,11 +14,6 @@ _MIN_SIZE :: 16
  * Because fuck type safety.
  */
 
-Result :: enum {
-	Not_Found,
-	Found,
-}
-
 Hash_Call :: proc(dest: ^[dynamic]u8, key: []u8, n: ^u32) -> u64
 
 Map_Props :: enum u8 {
@@ -60,7 +55,13 @@ destroy :: proc {
 	_destroy_map,
 	_destroy_multi,
 }
-//clear :: proc { _clear_set, _clear_map, _clear_multi }
+
+reset :: proc {
+	_set_reset,
+	_map_reset,
+	_multi_reset,
+}
+
 get :: proc {
 	_set_get,
 	_set_get_str,
@@ -69,6 +70,7 @@ get :: proc {
 	_multi_get,
 	_multi_get_str,
 }
+
 set :: proc {
 	_set_set,
 	_set_set_str,
@@ -105,11 +107,16 @@ _destroy_set :: proc(m: ^Set) {
 	delete(m.entries)
 }
 
-_set_set_str :: proc(m: ^Set, key: string) -> Result {
+_set_reset :: proc(m: ^Set) {
+	clear(&m.key_buf)
+	mem.set(mem.raw_data(m.entries), u8(255), size_of(_Entry) * len(m.entries))
+}
+
+_set_set_str :: proc(m: ^Set, key: string) -> bool {
 	return _set_set(m, transmute([]u8)key)
 }
 
-_set_set :: proc(m: ^Set, key: []u8) -> Result {
+_set_set :: proc(m: ^Set, key: []u8) -> bool {
 	hash: u64 = 0
 	org_len := u64(len(m.key_buf))
 
@@ -124,23 +131,23 @@ _set_set :: proc(m: ^Set, key: []u8) -> Result {
 		if f32(m.map_size) > _FULL_PERCENT * f32(len(m.entries)) {
 			_grow_entries(&m.entries)
 		}
-		return .Not_Found
+		return false
 	}
 
 	resize(&m.key_buf, int(org_len))
-	return .Found
+	return true
 }
 
-_set_get_str :: proc(m: ^Set, key: string) -> Result {
+_set_get_str :: proc(m: ^Set, key: string) -> bool {
 	return _set_get(m, transmute([]u8)key)
 }
 
-_set_get :: proc(m: ^Set, key: []u8) -> Result {
+_set_get :: proc(m: ^Set, key: []u8) -> bool {
 	hash: u64 = 0
 	org_len := len(m.key_buf)
 	e := _get_entry(m, key, &hash)
 	resize(&m.key_buf, org_len)
-	return .Not_Found if e.val_idx == _NONE else .Found
+	return e.val_idx != _NONE
 }
 
 /** Map stuff **/
@@ -175,11 +182,17 @@ _destroy_map :: proc(m: ^Map($T)) {
 	delete(m.values)
 }
 
-_map_set_str :: proc(m: ^Map($T), key: string, val: T) -> Result {
+_map_reset :: proc(m: ^Map($T)) {
+	clear(&m.key_buf)
+	clear(&m.values)
+	mem.set(mem.raw_data(m.entries), u8(255), size_of(_Entry) * len(m.entries))
+}
+
+_map_set_str :: proc(m: ^Map($T), key: string, val: T) -> bool {
 	return _map_set(m, transmute([]u8)key, val)
 }
 
-_map_set :: proc(m: ^Map($T), key: []u8, val: T) -> Result {
+_map_set :: proc(m: ^Map($T), key: []u8, val: T) -> bool {
 	hash: u64 = 0
 	org_len := u64(len(m.key_buf))
 
@@ -194,28 +207,28 @@ _map_set :: proc(m: ^Map($T), key: []u8, val: T) -> Result {
 		if f32(len(m.values)) > _FULL_PERCENT * f32(len(m.entries)) {
 			_grow_entries(&m.entries)
 		}
-		return .Not_Found
+		return false
 	}
 
 	m.values[e.val_idx] = val
 	resize(&m.key_buf, int(org_len))
-	return .Found
+	return true
 }
 
-_map_get_str :: proc(m: ^Map($T), key: string) -> (T, Result) {
+_map_get_str :: proc(m: ^Map($T), key: string) -> (T, bool) {
 	return _map_get(m, transmute([]u8)key)
 }
 
-_map_get :: proc(m: ^Map($T), key: []u8) -> (T, Result) {
+_map_get :: proc(m: ^Map($T), key: []u8) -> (T, bool) {
 	hash: u64 = 0
 	org_len := len(m.key_buf)
 	e := _get_entry(m, key, &hash)
 	resize(&m.key_buf, org_len)
 
 	if e.val_idx == _NONE {
-		return T{}, .Not_Found
+		return T{}, false
 	}
-	return m.values[e.val_idx], .Found
+	return m.values[e.val_idx], true
 }
 
 
@@ -254,11 +267,20 @@ _destroy_multi :: proc(m: ^Multi($T)) {
 	delete(m.values)
 }
 
-_multi_set_str :: proc(m: ^Multi($T), key: string, val: T) -> Result {
+_multi_reset :: proc(m: ^Multi($T)) {
+	for v in &m.values {
+		delete(v)
+	}
+	clear(&m.values)
+	clear(&m.key_buf)
+	mem.set(mem.raw_data(m.entries), u8(255), size_of(_Entry) * len(m.entries))
+}
+
+_multi_set_str :: proc(m: ^Multi($T), key: string, val: T) -> bool {
 	return _multi_set(m, transmute([]u8)key, val)
 }
 
-_multi_set :: proc(m: ^Multi($T), key: []u8, val: T) -> Result {
+_multi_set :: proc(m: ^Multi($T), key: []u8, val: T) -> bool {
 	hash: u64 = 0
 	org_len := u64(len(m.key_buf))
 
@@ -276,31 +298,31 @@ _multi_set :: proc(m: ^Multi($T), key: []u8, val: T) -> Result {
 		if f32(len(m.values)) > _FULL_PERCENT * f32(len(m.entries)) {
 			_grow_entries(&m.entries)
 		}
-		return .Not_Found
+		return false
 	}
 
 	dyn := &m.values[e.val_idx]
 	append(dyn, val)
 	resize(&m.key_buf, int(org_len))
-	return .Found
+	return true
 }
 
-_multi_get_str :: proc(m: ^Multi($T), key: string) -> ([]T, Result) {
+_multi_get_str :: proc(m: ^Multi($T), key: string) -> ([]T, bool) {
 	return _multi_get(m, transmute([]u8)key)
 }
 
-_multi_get :: proc(m: ^Multi($T), key: []u8) -> ([]T, Result) {
+_multi_get :: proc(m: ^Multi($T), key: []u8) -> ([]T, bool) {
 	hash: u64 = 0
 	org_len := len(m.key_buf)
 	e := _get_entry(m, key, &hash)
 	resize(&m.key_buf, org_len)
 
 	if e.val_idx == _NONE {
-		return nil, .Not_Found
+		return nil, false
 	}
 
 	dyn: [dynamic]T = m.values[e.val_idx]
-	return dyn[:], .Found
+	return dyn[:], true
 }
 
 
@@ -309,7 +331,6 @@ _multi_get :: proc(m: ^Multi($T), key: []u8) -> ([]T, Result) {
 
 @(private = "file")
 _get_entry :: proc(m: $M, key: []u8, hash: ^u64) -> ^_Entry {
-	//_get_entry :: proc(m: ^Map($T), key: []u8, hash: ^u64) -> ^_Entry {
 	n := u32(len(key))
 	org_len := u32(len(m.key_buf))
 	hash^ = m.hash__(&m.key_buf, key, &n)
