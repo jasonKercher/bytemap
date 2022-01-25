@@ -80,7 +80,7 @@ _composite_reset :: proc(m: ^Composite($T)) {
 	mem.set(mem.raw_data(m.entries), u8(255), size_of(_Entry) * len(m.entries))
 }
 
-//_composite_get_str :: proc(m: ^Composite($T), key: string) -> (T, bool) {
+//_composite_get_any :: proc(m: ^Composite($T), key: string) -> (T, bool) {
 //	return _composite_get(m, transmute([]u8)key)
 //}
 

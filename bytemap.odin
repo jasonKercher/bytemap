@@ -160,7 +160,7 @@ _grow_entries :: proc(old_entries: ^[]_Entry) {
 	new_size := _next_power_of_2(old_size + 1)
 
 	new_entries := _make_new_entries(new_size)
-	for e, i in old_entries {
+	for e in old_entries {
 		if e.val_idx == _NONE {
 			continue
 		}
