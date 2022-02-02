@@ -35,6 +35,9 @@ make_map :: proc($T: typeid, start_size: u64, props: bit_set[Map_Props] = {}) ->
 }
 
 _destroy_map :: proc(m: ^Map($T)) {
+	if m == nil {
+		return
+	}
 	delete(m.key_buf)
 	delete(m.entries)
 	delete(m.values)

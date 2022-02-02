@@ -21,6 +21,7 @@ package bytemap
  */
 
 import "core:mem"
+_ :: mem
 
 _Key_Location :: struct {
 	idx: int,
@@ -67,6 +68,9 @@ add_exclusion :: proc(m: ^Composite($T), n: int) {
 }
 
 _destroy_composite :: proc(m: ^Composite($T)) {
+	if m == nil {
+		return
+	}
 	delete(m.key_buf)
 	delete(m.key_locs)
 	delete(m.entries)

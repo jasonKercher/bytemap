@@ -35,6 +35,9 @@ make_multi :: proc($T: typeid, start_size: u64, props: bit_set[Map_Props] = {}) 
 }
 
 _destroy_multi :: proc(m: ^Multi($T)) {
+	if m == nil {
+		return
+	}
 	delete(m.key_buf)
 	delete(m.entries)
 	for v in &m.values {

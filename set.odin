@@ -32,6 +32,9 @@ make_set :: proc(start_size: u64, props: bit_set[Map_Props] = {}) -> Set {
 	return m
 }
 _destroy_set :: proc(m: ^Set) {
+	if m == nil {
+		return
+	}
 	delete(m.key_buf)
 	delete(m.entries)
 }
